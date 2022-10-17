@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
-from ai.settings import BASE_DIR
+from ai.settings.settings import BASE_DIR
 from utils.logging_time import logging_time
 from .apps import ControllerConfig
 from .models import Requested, Responsed
@@ -113,38 +113,38 @@ class GetInformation(APIView):
 
             res = Responsed(user=user, result=result)
 
-            # 이미지에 결과 그려서 확인
-            try:
-                img2 = np.ones((img.shape[0], img.shape[1], 3), np.uint8) * 255
-                for i in range(len(coordinates)):
-                    points = np.array([list(map(int, p))
-                                       for p in coordinates[i]]).astype(np.int32)
-                    txt = result[0]['result'][0][i]
-                    center = [(points[3][0] + points[0][0]) // 2,
-                              (points[3][1] + points[0][1]) // 2]
-                    m = points[3][0] - center[0]
-                    area = ((points[3][0] - points[0][0]) *
-                            (points[3][1] - points[0][1])) // 150
-                    cv2.rectangle(img, points[0], points[3],
-                                  (255, 0, 255), 2, cv2.LINE_AA)
-                    b, g, r, a = 100, 100, 250, 0
-                    fontpath = "fonts/gulim.ttc"
-                    font = ImageFont.truetype(fontpath, int(area))
-                    img_pil = Image.fromarray(img2)
-                    draw = ImageDraw.Draw(img_pil)
-                    draw.text((center[0], center[1]),
-                              txt, font=font, fill=(b, g, r, a))
-                    img2 = np.array(img_pil)
+            # 이미지에 결과 그려서 확인. local 작업시 편의 위한 기능. 배포시 주석
+            # try:
+            #     img2 = np.ones((img.shape[0], img.shape[1], 3), np.uint8) * 255
+            #     for i in range(len(coordinates)):
+            #         points = np.array([list(map(int, p))
+            #                            for p in coordinates[i]]).astype(np.int32)
+            #         txt = result[0]['result'][0][i]
+            #         center = [(points[3][0] + points[0][0]) // 2,
+            #                   (points[3][1] + points[0][1]) // 2]
+            #         m = points[3][0] - center[0]
+            #         area = ((points[3][0] - points[0][0]) *
+            #                 (points[3][1] - points[0][1])) // 150
+            #         cv2.rectangle(img, points[0], points[3],
+            #                       (255, 0, 255), 2, cv2.LINE_AA)
+            #         b, g, r, a = 100, 100, 250, 0
+            #         fontpath = "fonts/gulim.ttc"
+            #         font = ImageFont.truetype(fontpath, int(area))
+            #         img_pil = Image.fromarray(img2)
+            #         draw = ImageDraw.Draw(img_pil)
+            #         draw.text((center[0], center[1]),
+            #                   txt, font=font, fill=(b, g, r, a))
+            #         img2 = np.array(img_pil)
 
-                img = cv2.resize(img, (800, 1000))
-                img2 = cv2.resize(img2, (800, 1000))
+            #     img = cv2.resize(img, (800, 1000))
+            #     img2 = cv2.resize(img2, (800, 1000))
 
-                cv2.imshow('img', img)  # [:, :, ::-1])
-                cv2.imshow('img2', img2)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
-            except:
-                pass
+            #     cv2.imshow('img', img)  # [:, :, ::-1])
+            #     cv2.imshow('img2', img2)
+            #     cv2.waitKey(0)
+            #     cv2.destroyAllWindows()
+            # except:
+            #     pass
 
             return Response(ResponsedSerializer(res).data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'Invalid Data..'}, status=status.HTTP_400_BAD_REQUEST)

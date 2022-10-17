@@ -12,7 +12,7 @@ from utils.logging_time import logging_time
 from .utils import CTCLabelConverter, AttnLabelConverter
 from .dataset import RawDataset, AlignCollate
 from .model import Model
-from ai.settings import BASE_DIR
+from ai.settings.settings import BASE_DIR
 
 """
 CUDA_VISIBLE_DEVICES=0 python3 demo.py \

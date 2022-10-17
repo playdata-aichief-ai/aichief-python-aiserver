@@ -11,3 +11,6 @@ db.sqlite3
 db.sqlite3-journal
 media
 saved_models/
+
+# no secret.json files
+*secrets.json

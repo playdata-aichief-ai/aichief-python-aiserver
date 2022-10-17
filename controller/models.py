@@ -1,6 +1,6 @@
 import os
 from django.db import models
-from ai.settings import BASE_DIR
+from ai.settings.settings import BASE_DIR
 
 
 def upload_to(instance, filename):
