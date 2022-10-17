@@ -1,0 +1,15 @@
+Collecting setuptools
+  Using cached setuptools-65.4.1-py3-none-any.whl (1.2 MB)
+Collecting wheel
+  Using cached wheel-0.37.1-py2.py3-none-any.whl (35 kB)
+Collecting scikit-build
+  Using cached scikit_build-0.15.0-py2.py3-none-any.whl (77 kB)
+Collecting cmake
+  Using cached cmake-3.24.1.1-py2.py3-none-win_amd64.whl (39.7 MB)
+Collecting pip
+  Using cached pip-22.2.2-py3-none-any.whl (2.0 MB)
+Collecting numpy==1.11.3
+  Downloading numpy-1.11.3.zip (4.7 MB)
+     ---------------------------------------- 4.7/4.7 MB 42.8 MB/s eta 0:00:00
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
