@@ -12,7 +12,7 @@ class Classification():
                     11: 'heungkuk', 12: 'kb', 13: 'kdb', 14: 'kyobo', 15: 'lina',
                     16: 'metlife', 17: 'miraeasset', 18: 'nh', 19: 'prudential', 20: 'samsung',
                     21: 'shinhan', 22: 'tongyang'}
-        self.model = models.load_model('saved_models/vgg16_0.02_0.97.h5')
+        self.model = models.load_model('./classification/saved_models/vgg16_0.02_0.97.h5')
         
     def classify(self, scanned_image):
         img = cv2.resize(scanned_image, (448, 448), interpolation=cv2.INTER_AREA)
