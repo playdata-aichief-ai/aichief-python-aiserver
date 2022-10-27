@@ -2,7 +2,7 @@ import json
 
 class Box_Detection():
     def __init__(self):
-        self.json_path = 'label/label.json'
+        self.json_path = './preprocessing/label/label.json'
         self.image_dict = {}
     
     def box_detect(self, name, cropped_image):
