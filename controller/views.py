@@ -62,6 +62,9 @@ class GetInformation(APIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)  # data 유효성 검사
         if serializer.is_valid():
+            contract_id = request.data.get('contract_id')
+            company = request.data.get('company')
+            image_path = request.data.get('image_path')
             image = request.data.get('image')
             user = user = serializer.data.get('user')
             req = Requested(user=user,
@@ -72,44 +75,45 @@ class GetInformation(APIView):
             coordinates = []
             pred_img = []
 
+            # 미구현
+            # img url에서 s3 img file read
+
             # Inmemoryuploadedfile 을 이미지로 읽기
             img = cv2.imdecode(np.fromstring(
                 image.read(), np.uint8), cv2.IMREAD_COLOR)
 
-            # img url에서 s3 img file read
-
             # Image Scan
             scanned_img = scanner.scan(img)
-            print('finish scan')
+            print('finished scan')
 
             # Image Crop
             cropped_img = cropper.crop(scanned_img)
-            print('finish crop')
+            print('finished crop')
 
             # Image Classification
             category = ControllerConfig.cf.classify(scanned_img)
-            print('finish classification', category)
+            print('finished classification', category)
 
             # Area detection
             img_dic = box_detector.box_detect(
                 name=category, cropped_image=cropped_img)
 
-            print('finish box detect')
+            print('finished box detect')
 
             # Super Resolution
-            # sr_img_dic = ControllerConfig.sr.inference(img_dic)
-            # print(sr_img_dic)
+            sr_img_dic = ControllerConfig.sr.inference(img_dic)
+            print('finished super resolution')
 
-            img_key = list(img_dic.keys())
+            img_key = list(sr_img_dic.keys())
             img_values = []
 
             # Text Detection
             for k in img_key:
-                re_cropped_img = self.re_crop_detection(img_dic[k])
+                re_cropped_img = self.re_crop_detection(sr_img_dic[k])
                 try:
                     re_cropped_img = Image.fromarray(re_cropped_img)
                 except:
-                    re_cropped_img = Image.fromarray(img_dic[k])
+                    re_cropped_img = Image.fromarray(sr_img_dic[k])
                 img_values.append(re_cropped_img)
 
             # crop_img = self.re_crop_detection(img)
@@ -120,13 +124,14 @@ class GetInformation(APIView):
 
             # Text Recognition : 최대 predict 이미지 개수 500개
 
-            result = [{'name': file_name + file_ext,
-                       'coordinates': coordinates, 'result': []}]
-            result[0]['result'] = ControllerConfig.tr.predict(
+            result = [{'contract_id': contract_id,
+                       'image_path': image_path,
+                       'result': {}}]
+            predict_result = ControllerConfig.tr.predict(
                 file_name, img_values)
 
             for i in range(len(img_key)):
-                print(img_key[i], ':', result[0]['result'][0][i])
+                result[0]['result'][img_key[i]] = predict_result[0][i]
             res = Responsed(user=user, result=result)
 
             # req.save()
@@ -134,6 +139,8 @@ class GetInformation(APIView):
             return Response(ResponsedSerializer(res).data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'Invalid Data..'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+################ no use########################
         # 1번 방식: AI Hub Label 데이터 추출해서 Detection 하는 형식으로
         # 추출 -> static/images에 영역별로 분리해서 저장
         # 2번 방식: Text Detection demo버젼(손글씨, 인쇄글씨 모두 검출)

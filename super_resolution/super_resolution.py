@@ -3,12 +3,13 @@ import math
 import numpy as np
 from ai.settings.settings import BASE_DIR
 import os
+from super_resolution.modules.net import SwinIR
 
-#
 CFG = {
     'IMG_SIZE': 64,
     'BATCH_SIZE': 1,
-    'DEVICE': 'cuda' if torch.cuda.is_available() else 'cpu'
+    'DEVICE': 'cuda' if torch.cuda.is_available() else 'cpu',
+    'SCALE': 2
 }
 
 
@@ -17,8 +18,15 @@ class Super_Resolution():
 
     def __init__(self):
         # load pretrained model
-        self.model = torch.load(os.path.join(BASE_DIR, 'super_resolution', 'saved_models',
-                                'model.pth'), map_location=CFG['DEVICE']).eval().to(CFG['DEVICE'])
+        model = SwinIR(upscale=CFG['SCALE'], in_chans=3, img_size=CFG['IMG_SIZE'], window_size=8,
+                       img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, num_heads=[6, 6, 6, 6, 6, 6],
+                       mlp_ratio=2, upsampler='nearest+conv', resi_connection='1conv')
+        param_key_g = 'params'
+        pretrained_dict = torch.load(os.path.join(
+            BASE_DIR, 'super_resolution', 'saved_models', 'SwinIR_2x.pth'))
+        model.load_state_dict(pretrained_dict[param_key_g] if param_key_g in pretrained_dict.keys(
+        ) else pretrained_dict, strict=True)
+        self.model = model
 
     def test(self, img_lq, window_size, sf):
         b, c, h, w = img_lq.size()
