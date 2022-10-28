@@ -17,4 +17,6 @@ Web Server와 연동할 AI Server(OCR)
 
 ## 실행
 
-python manage.py runserver --settings=ai.settings.settings
+<!-- python manage.py runserver --settings=ai.settings.settings -->
+
+python manage.py runserver

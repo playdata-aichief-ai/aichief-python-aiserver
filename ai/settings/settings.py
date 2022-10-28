@@ -41,7 +41,7 @@ SECRET_KEY = get_secret('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  # 배포위해서 False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['13.124.66.122', '180.80.212.215', '*']  # spring server, 내 ip, all
 
 
 # Application definition

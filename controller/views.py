@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
 import cv2
+import torch
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
@@ -21,6 +22,34 @@ from .serializers import RequestedSerializer, ResponsedSerializer
 class GetInformation(APIView):
     permission_classes = [AllowAny]
     serializer_class = RequestedSerializer
+
+    def crop_detection(self, img):
+        targets, _, _ = ControllerConfig.td.predict(img)
+        min_h = 999999
+        max_h = -999999
+        min_w = 999999
+        max_w = -999999
+        for i, l in enumerate(targets):
+            l = sorted(l, key=lambda x: (x[0], x[1]))
+            d1 = list(map(int, l[0]))
+            d2 = list(map(int, l[3]))
+            min_h = min(min_h, d1[1])
+            max_h = max(max_h, d2[1])
+            min_w = min(min_w, d1[0])
+            max_w = max(max_w, d2[0])
+        try:
+            sliced_img = [img[min_h:max_h, min_w:max_w]]  # 높이, 너비
+        except:
+            pass
+
+        try:
+            for ci in sliced_img:
+                cv2.imshow('crop_img', ci)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+        except:
+            pass
+        return sliced_img
 
     @logging_time
     def post(self, request, format=None):
@@ -49,67 +78,73 @@ class GetInformation(APIView):
             img = cv2.imdecode(np.fromstring(
                 image.read(), np.uint8), cv2.IMREAD_COLOR)
 
-            # 1번 방식
+            # # 1번 방식
+            # try:
+            #     with open(os.path.join(BASE_DIR, 'static', 'json', file_name + '.json'), 'r', encoding='utf8') as f:
+            #         json_files = json.load(f)
+            #     img_info = json_files['images'][0]
+
+            #     # img = cv2.imread(image, cv2.IMREAD_COLOR)
+            #     targets = json_files['annotations'][0]['polygons']
+
+            #     for i, l in enumerate(targets):
+            #         if l['type'] != int(2):
+            #             continue
+            #         l['points'] = sorted(
+            #             l['points'], key=lambda x: (x[0], x[1]))
+            #         d1 = list(map(int, l['points'][0]))
+            #         d2 = list(map(int, l['points'][3]))
+            #         try:
+            #             sliced_img = img[d1[1]:d2[1], d1[0]:d2[0]]  # 높이, 너비
+            #             # sliced_img_name = img_info['identifier'] + \
+            #             #     f'_{i}.' + img_info['type']
+
+            #             # ndarray -> 이미지로 다시 전환해서 바로 보내기. (서버에 나눈 이미지 저장 후 불러오는게 X)
+            #             pred_img.append(Image.fromarray(sliced_img))
+            #             coordinates.append(l['points'])
+            #             # cv2.imwrite(os.path.join(BASE_DIR, 'static',
+            #             #             'images', image, sliced_img_name), sliced_img)
+            #         except:
+            #             pass
+
+            # # 2번 방식
+            # except:
+            #     targets, _, _ = ControllerConfig.td.predict(img)
+
+            #     for i, l in enumerate(targets):
+            #         # if l['type'] != int(2):
+            #         #     continue
+            #         # l['points'] = sorted(l['points'], key=lambda x: (x[0], x[1]))
+            #         # d1 = list(map(int, l['points'][0]))
+            #         # d2 = list(map(int, l['points'][3]))
+
+            #         l = sorted(l, key=lambda x: (x[0], x[1]))
+            #         d1 = list(map(int, l[0]))
+            #         d2 = list(map(int, l[3]))
+            #         try:
+            #             sliced_img = img[d1[1]:d2[1], d1[0]:d2[0]]  # 높이, 너비
+            #             # sliced_img_name = img_info['identifier'] + \
+            #             #     f'_{i}.' + img_info['type']
+
+            #             # ndarray -> 이미지로 다시 전환해서 바로 보내기. (서버에 나눈 이미지 저장 후 불러오는게 X)
+            #             pred_img.append(Image.fromarray(sliced_img))
+            #             coordinates.append(l)
+            #             # cv2.imwrite(os.path.join(BASE_DIR, 'static',
+            #             #             'images', image, sliced_img_name), sliced_img)
+            #         except:
+            #             pass
+
+            crop_img = self.crop_detection(img)
             try:
-                with open(os.path.join(BASE_DIR, 'static', 'json', file_name + '.json'), 'r', encoding='utf8') as f:
-                    json_files = json.load(f)
-                img_info = json_files['images'][0]
-
-                # img = cv2.imread(image, cv2.IMREAD_COLOR)
-                targets = json_files['annotations'][0]['polygons']
-
-                for i, l in enumerate(targets):
-                    if l['type'] != int(2):
-                        continue
-                    l['points'] = sorted(
-                        l['points'], key=lambda x: (x[0], x[1]))
-                    d1 = list(map(int, l['points'][0]))
-                    d2 = list(map(int, l['points'][3]))
-                    try:
-                        sliced_img = img[d1[1]:d2[1], d1[0]:d2[0]]  # 높이, 너비
-                        # sliced_img_name = img_info['identifier'] + \
-                        #     f'_{i}.' + img_info['type']
-
-                        # ndarray -> 이미지로 다시 전환해서 바로 보내기. (서버에 나눈 이미지 저장 후 불러오는게 X)
-                        pred_img.append(Image.fromarray(sliced_img))
-                        coordinates.append(l['points'])
-                        # cv2.imwrite(os.path.join(BASE_DIR, 'static',
-                        #             'images', image, sliced_img_name), sliced_img)
-                    except:
-                        pass
-
-            # 2번 방식
+                crop_img = list(map(Image.fromarray, crop_img))
             except:
-                targets, _, _ = ControllerConfig.td.predict(img)
-
-                for i, l in enumerate(targets):
-                    # if l['type'] != int(2):
-                    #     continue
-                    # l['points'] = sorted(l['points'], key=lambda x: (x[0], x[1]))
-                    # d1 = list(map(int, l['points'][0]))
-                    # d2 = list(map(int, l['points'][3]))
-
-                    l = sorted(l, key=lambda x: (x[0], x[1]))
-                    d1 = list(map(int, l[0]))
-                    d2 = list(map(int, l[3]))
-                    try:
-                        sliced_img = img[d1[1]:d2[1], d1[0]:d2[0]]  # 높이, 너비
-                        # sliced_img_name = img_info['identifier'] + \
-                        #     f'_{i}.' + img_info['type']
-
-                        # ndarray -> 이미지로 다시 전환해서 바로 보내기. (서버에 나눈 이미지 저장 후 불러오는게 X)
-                        pred_img.append(Image.fromarray(sliced_img))
-                        coordinates.append(l)
-                        # cv2.imwrite(os.path.join(BASE_DIR, 'static',
-                        #             'images', image, sliced_img_name), sliced_img)
-                    except:
-                        pass
+                crop_img = [Image.fromarray(img)]
 
             # Text Recognition : 최대 predict 이미지 개수 500개
             result = [{'name': file_name + file_ext,
                        'coordinates': coordinates, 'result': []}]
             result[0]['result'] = ControllerConfig.tr.predict(
-                file_name, pred_img)
+                file_name, crop_img)  # [Image.fromarray(img)])  # pred_img)
 
             res = Responsed(user=user, result=result)
 

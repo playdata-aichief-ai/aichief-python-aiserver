@@ -24,7 +24,7 @@ CUDA_VISIBLE_DEVICES=0 python3 demo.py \
 
 class Text_Recognition():
 
-    def __init__(self, Transformation='TPS', FeatureExtraction='ResNet', SequenceModeling='BiLSTM', Prediction='Attn', saved_model=os.path.join(BASE_DIR, 'text_recognition', 'saved_models', 'best_accuracy_lenplus.pth')):
+    def __init__(self, Transformation='TPS', FeatureExtraction='ResNet', SequenceModeling='BiLSTM', Prediction='Attn', saved_model=os.path.join(BASE_DIR, 'text_recognition', 'saved_models', 'best_accuracy_lenplus_66.pth')):
         parser = argparse.ArgumentParser()
         parser.add_argument('--image_folder',   # required=True,
                             help='path to image_folder which contains text images')
@@ -144,7 +144,12 @@ class Text_Recognition():
 
                 else:
                     preds = self.model(image, text_for_pred, is_train=False)
-
+                    # for image_ in image:
+                    #     for image__ in image_:
+                    #         print(torch.sum(image__, axis=0) /
+                    #               image__.shape[0])
+                    #         print(torch.sum(image__, axis=1) /
+                    #               image__.shape[1])
                     # select max probabilty (greedy decoding) then decode index to character
                     _, preds_index = preds.max(2)
                     preds_str = self.converter.decode(
