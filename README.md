@@ -14,6 +14,10 @@ Web Server와 연동할 AI Server(OCR)
 
 - text_detection 모델(craft_mlt_25k/pretrained 모델)
   https://drive.google.com/file/d/1LG_UxK_dwMagXZHg4fcPia6LoiAjTJqM/view?usp=sharing
+  
+## Super-resolution saved_models(path: super_resolution/saved_models/model.pth)
+  - SwinIR pretrined model    
+  https://drive.google.com/drive/folders/1hwQd880RuEls9w_P3ruCNsb9l8QAlrSs?usp=sharing
 
 ## 실행
 
