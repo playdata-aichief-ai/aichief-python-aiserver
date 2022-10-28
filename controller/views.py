@@ -18,7 +18,6 @@ from .apps import ControllerConfig
 from .models import Requested, Responsed
 from .serializers import RequestedSerializer, ResponsedSerializer
 
-
 class GetInformation(APIView):
     permission_classes = [AllowAny]
     serializer_class = RequestedSerializer
@@ -60,16 +59,23 @@ class GetInformation(APIView):
             req = Requested(user=user,
                             image=image
                             )
+
             file_name, file_ext = os.path.splitext(image.name)
             coordinates = []
             pred_img = []
-            # req.save()
+            req.save()
 
-            # Super Resolution 초해상화
-
+            # img url에서 s3 img file read
+            
             # Image Classification
 
+            # Area detection
+
+            # Super Resolution
+            sr_img_dic = ControllerConfig.sr.inference(img_dic)
+
             # Text Detection
+
             # 1번 방식: AI Hub Label 데이터 추출해서 Detection 하는 형식으로
             # 추출 -> static/images에 영역별로 분리해서 저장
             # 2번 방식: Text Detection demo버젼(손글씨, 인쇄글씨 모두 검출)
