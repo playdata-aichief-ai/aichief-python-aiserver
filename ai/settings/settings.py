@@ -41,7 +41,8 @@ SECRET_KEY = get_secret('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  # 배포위해서 False
 
-ALLOWED_HOSTS = ['13.124.66.122', '180.80.212.215', '*']  # spring server, 내 ip, all
+# spring server, 내 ip, all
+ALLOWED_HOSTS = ['13.124.66.122', '180.80.212.215', '*']
 
 
 # Application definition
@@ -141,3 +142,13 @@ STATIC_ROOT = BASE_DIR / 'static'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+AWS_STORAGE_BUCKET_NAME = get_secret('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = get_secret('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = get_secret('AWS_SECRET_ACCESS_KEY')
+S3DIRECT_REGION = get_secret('S3DIRECT_REGION')
+PROTECTED_DIR_NAME = get_secret('PROTECTED_DIR_NAME')
+PROTECTED_MEDIA_URL = '//%s.s3.amazonaws.com/%s/' % (
+    AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME)
+AWS_DOWNLOAD_EXPIRE = 5000  # (0ptional, in milliseconds)

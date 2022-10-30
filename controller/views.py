@@ -6,13 +6,14 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from aws.download.utils import AWSDownload
 
 import cv2
 import torch
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
-from ai.settings.settings import BASE_DIR
+from ai.settings.settings import BASE_DIR, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3DIRECT_REGION, PROTECTED_DIR_NAME, PROTECTED_MEDIA_URL, AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME, AWS_DOWNLOAD_EXPIRE
 from utils.logging_time import logging_time
 from .apps import ControllerConfig
 from .models import Requested, Responsed
@@ -29,6 +30,21 @@ scanner = Scan()
 class GetInformation(APIView):
     permission_classes = [AllowAny]
     serializer_class = RequestedSerializer
+
+    def get_image_from_s3(self, img_path, download=False):
+        bucket = AWS_STORAGE_BUCKET_NAME
+        region = S3DIRECT_REGION
+        access_key = AWS_ACCESS_KEY_ID
+        secret_key = AWS_SECRET_ACCESS_KEY
+        target_img_path = img_path
+        file_name = img_path.split('/')[-1]
+        aws_download = AWSDownload(access_key, secret_key, bucket, region)
+        s3 = aws_download.s3connect()
+        if download:
+            save2 = os.path.join(BASE_DIR, file_name)
+            return aws_download.download_file(s3, target_img_path, save2)
+        else:
+            return aws_download.read_image_from_s3(s3, target_img_path)
 
     def re_crop_detection(self, img):
         targets, _, _ = ControllerConfig.td.predict(img)
@@ -65,22 +81,19 @@ class GetInformation(APIView):
             contract_id = request.data.get('contract_id')
             company = request.data.get('company')
             image_path = request.data.get('image_path')
-            image = request.data.get('image')
-            user = user = serializer.data.get('user')
-            req = Requested(user=user,
-                            image=image
-                            )
 
-            file_name, file_ext = os.path.splitext(image.name)
+            user = user = serializer.data.get('user')
+            file_name = file_name = image_path.split('/')[-1]
             coordinates = []
             pred_img = []
 
-            # 미구현
-            # img url에서 s3 img file read
-
-            # Inmemoryuploadedfile 을 이미지로 읽기
-            img = cv2.imdecode(np.fromstring(
-                image.read(), np.uint8), cv2.IMREAD_COLOR)
+            # img url에서 s3 img file read or 전달받은 Inmemoryuploadedfile 을 이미지로 읽기
+            try:
+                img = np.asarray(Image.open(
+                    self.get_image_from_s3(image_path)), dtype=np.uint8)
+            except:
+                img = cv2.imdecode(np.fromstring(
+                    request.data.get('image').read(), np.uint8), cv2.IMREAD_COLOR)
 
             # Image Scan
             scanned_img = scanner.scan(img)
