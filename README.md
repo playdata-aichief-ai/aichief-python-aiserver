@@ -23,6 +23,8 @@ Web Server와 연동할 AI Server(OCR)
   https://drive.google.com/drive/folders/1hwQd880RuEls9w_P3ruCNsb9l8QAlrSs?usp=sharing
 
 ## Classification saved_models(path: classification/saved_models)
+- CNN Document Image Classification (VGG16 backbone + classifier head) - acc: 0.97 loss: 0.02
+  https://drive.google.com/file/d/1oD6L3yco63L8uksK2pL8DXGrrRUb8pyt/view
 
 ## 실행
 
