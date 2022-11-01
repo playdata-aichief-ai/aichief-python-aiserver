@@ -14,6 +14,7 @@ import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 from ai.settings.settings import BASE_DIR, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3DIRECT_REGION, PROTECTED_DIR_NAME, PROTECTED_MEDIA_URL, AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME, AWS_DOWNLOAD_EXPIRE
+from text_detection_yolo.text_detection_yolo import Text_Detection_Yolo
 from utils.logging_time import logging_time
 from .apps import ControllerConfig
 from .models import Requested, Responsed
@@ -119,6 +120,9 @@ class GetInformation(APIView):
 
             img_key = list(sr_img_dic.keys())
             img_values = []
+            
+            # Text Detection Yolov5x
+            yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
 
             # Text Detection
             for k in img_key:
