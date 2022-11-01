@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from ai.settings.permissions import IPBasedPermission
 from aws.download.utils import AWSDownload
 
 import cv2
@@ -28,7 +29,7 @@ scanner = Scan()
 
 
 class GetInformation(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IPBasedPermission]
     serializer_class = RequestedSerializer
 
     def get_image_from_s3(self, img_path, download=False):
@@ -65,13 +66,12 @@ class GetInformation(APIView):
         except:
             pass
 
-        try:
-            for ci in sliced_img:
-                cv2.imshow('crop_img', ci)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
-        except:
-            pass
+        # try:
+        #     cv2.imshow('crop_img', sliced_img)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
+        # except:
+        #     pass
         return sliced_img
 
     @logging_time
@@ -128,12 +128,6 @@ class GetInformation(APIView):
                 except:
                     re_cropped_img = Image.fromarray(sr_img_dic[k])
                 img_values.append(re_cropped_img)
-
-            # crop_img = self.re_crop_detection(img)
-            # try:
-            #     crop_img = list(map(Image.fromarray, crop_img))
-            # except:
-            #     crop_img = [Image.fromarray(img)]
 
             # Text Recognition : 최대 predict 이미지 개수 500개
 

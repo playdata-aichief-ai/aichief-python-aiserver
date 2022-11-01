@@ -41,9 +41,10 @@ SECRET_KEY = get_secret('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  # 배포위해서 False
 
-# spring server, 내 ip, all
-ALLOWED_HOSTS = ['13.124.66.122', '180.80.212.215', '*']
+# AWS Elastic IP
+ALLOWED_HOSTS = [get_secret('IP'), '127.0.0.1']
 
+ALLOWED_IP_ADDRESSES = ALLOWED_HOSTS + [get_secret('SPRING_IP')]
 
 # Application definition
 
