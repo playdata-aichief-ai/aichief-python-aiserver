@@ -60,11 +60,11 @@ os.environ['OMP_NUM_THREADS'] = '1' if platform.system() == 'darwin' else str(NU
 
 # padding with median value
 def padding(img, img_size=1280):
-    y, x = img.shape
+    y, x, _ = img.shape
     larger = max(x, y, img_size)
     if larger > img_size:
         img = cv2.resize(img, (img_size, int(y/x*img_size)), interpolation=cv2.INTER_CUBIC)
-    img = np.pad(img, (((larger-y)//2,(larger-y)//2),((larger-x)//2,(larger-x)//2)), 'constant', constant_values=np.median(img))
+    img = np.pad(img, ((int(math.ceil((larger-y)/2)),(larger-y)//2),(int(math.ceil((larger-x)/2)),(larger-x)//2), (0, 0)), 'constant', constant_values=np.median(img))
     return img
 
 

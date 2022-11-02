@@ -84,7 +84,6 @@ class GetInformation(APIView):
             file_name = file_name = image_path.split('/')[-1]
             coordinates = []
             pred_img = []
-
             # img url에서 s3 img file read or 전달받은 Inmemoryuploadedfile 을 이미지로 읽기
             try:
                 img = np.asarray(Image.open(
@@ -108,17 +107,44 @@ class GetInformation(APIView):
             # Area detection
             img_dic = box_detector.box_detect(
                 name=category, cropped_image=cropped_img)
-
             print('finished box detect')
+
+            # test_Area_detection
+            # for k, i in img_dic.items():
+            #     cv2.imwrite(f'AD{k}.jpg', i)
 
             # Super Resolution
             sr_img_dic = ControllerConfig.sr.inference(img_dic)
             print('finished super resolution')
 
+            # for k, i in sr_img_dic.items():
+            #     cv2.imwrite(f'SR{k}.jpg', i)
+
+            img_key = list(img_dic.keys())
+            img_values = []
+
             # Text Detection Yolov5x
-            # yolo_cropped_img_dic = Text_Detection_Yolo.predict(img_dic)
-            # print(yolo_cropped_img_dic)
-            # print('finished yolo_cropped_img_dic')
+            yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
+            print('finished text detection(yolo)')
+            # # test Text Detection
+            # for k, l in yolo_cropped_img_dic.items():
+            #     for i in l:
+            #         cv2.imwrite(f'TD{k}.jpg', i)
+
+            # Text Detection
+            # for k in img_key:
+            #     re_cropped_img = self.re_crop_detection(sr_img_dic[k])
+            #     try:
+            #         re_cropped_img = Image.fromarray(re_cropped_img)
+            #     except:
+            #         re_cropped_img = Image.fromarray(sr_img_dic[k])
+            #     img_values.append(re_cropped_img)
+
+            # crop_img = self.re_crop_detection(img)
+            # try:
+            #     crop_img = list(map(Image.fromarray, crop_img))
+            # except:
+            #     crop_img = [Image.fromarray(img)]
 
             # Text Recognition : 최대 predict 이미지 개수 500개
             # img_key = list(yolo_cropped_img_dic.keys())
