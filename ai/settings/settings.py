@@ -14,6 +14,8 @@ from pathlib import Path
 import json
 import os
 from django.core.exceptions import ImproperlyConfigured
+import pymysql
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -106,6 +108,21 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# pymysql.install_as_MySQLdb()
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',  # engine: mysql
+#         'NAME': get_secret('DB')['NAME'],  # DB Name
+#         'USER': get_secret('DB')['USER'],  # DB User
+#         'PASSWORD': get_secret('DB')['PASSWORD'],  # Password
+#         'HOST': get_secret('DB')['HOST'],  # 생성한 데이터베이스 엔드포인트
+#         'PORT': get_secret('DB')['PORT'],  # 데이터베이스 포트
+#         'OPTIONS': {
+#             'init_command': get_secret('DB')['OPTIONS']
+#         }
+#     }
+# }
 
 
 # Password validation

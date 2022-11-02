@@ -4,7 +4,7 @@ from attr import fields
 from rest_framework import serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import Requested, Responsed
+from .models import Requested, Responsed, ProcessLog
 
 
 class RequestedSerializer(serializers.ModelSerializer):
@@ -23,3 +23,9 @@ class ResponsedSerializer(serializers.ModelSerializer):
         model = Responsed
         fields = ('__all__')
         parser_classes = (MultiPartParser, FormParser)
+
+
+class ProcessLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcessLog
+        fields = ('__all__')

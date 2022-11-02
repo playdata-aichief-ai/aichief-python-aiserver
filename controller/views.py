@@ -16,7 +16,7 @@ from PIL import Image, ImageFont, ImageDraw
 from text_detection_yolo.text_detection_yolo import Text_Detection_Yolo
 from ai.settings.settings import BASE_DIR, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3DIRECT_REGION, PROTECTED_DIR_NAME, PROTECTED_MEDIA_URL, AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME, AWS_DOWNLOAD_EXPIRE
 from .apps import ControllerConfig
-from .models import Requested, Responsed
+from .models import Requested, Responsed, ProcessLog
 from .serializers import RequestedSerializer, ResponsedSerializer
 from preprocessing.box_detection import Box_Detection
 from preprocessing.crop import Crop
@@ -75,6 +75,7 @@ class GetInformation(APIView):
 
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)  # data 유효성 검사
+
         if serializer.is_valid():
             contract_id = request.data.get('contract_id')
             company = request.data.get('company')
@@ -84,6 +85,7 @@ class GetInformation(APIView):
             file_name = file_name = image_path.split('/')[-1]
             coordinates = []
             pred_img = []
+            logging = ProcessLog(user=user, img_path=image_path)
             # img url에서 s3 img file read or 전달받은 Inmemoryuploadedfile 을 이미지로 읽기
             try:
                 img = np.asarray(Image.open(
@@ -97,7 +99,7 @@ class GetInformation(APIView):
             print('finished scan')
 
             # Image Crop
-            cropped_img = cropper.crop(scanned_img)
+            cropped_img = cropper.crop(company, scanned_img)
             print('finished crop')
 
             # Image Classification
@@ -148,14 +150,14 @@ class GetInformation(APIView):
 
             # Text Recognition : 최대 predict 이미지 개수 500개
             # img_key = list(yolo_cropped_img_dic.keys())
-            img_key = list(sr_img_dic.keys())
+            img_key = list(yolo_cropped_img_dic.keys())
 
             result = [{'contract_id': contract_id,
                        'image_path': image_path,
                        'result': {}}]
             for i in range(len(img_key)):
                 result[0]['result'][img_key[i]] = ControllerConfig.tr.predict(
-                    file_name + str(i), [Image.fromarray(target) for target in sr_img_dic[img_key[i]]])[0]
+                    file_name + str(i), [Image.fromarray(target) for target in yolo_cropped_img_dic[img_key[i]]])[0]
 
             res = Responsed(user=user, result=result)
 
