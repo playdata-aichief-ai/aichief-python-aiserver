@@ -98,22 +98,28 @@ class GetInformation(APIView):
             scanned_img = scanner.scan(img)
             print('finished scan')
 
-            # Image Crop
-            cropped_img = cropper.crop(scanned_img)
-            print('finished crop')
+            # test scan
+            cv2.imwrite('scan.jpg', scanned_img)
 
             # Image Classification
             category = ControllerConfig.cf.classify(scanned_img)
             print('finished classification', category)
 
+            # Image Crop
+            cropped_img = cropper.crop(category, scanned_img)
+            print('finished crop')
+
+            # test Crop
+            cv2.imwrite('crop.jpg', cropped_img)
+
             # Area detection
             img_dic = box_detector.box_detect(
                 name=category, cropped_image=cropped_img)
             print('finished box detect')
-
+        
             # test_Area_detection
-            # for k, i in img_dic.items():
-            #     cv2.imwrite(f'AD{k}.jpg', i)
+            for k, i in img_dic.items():
+                cv2.imwrite(f'AD{k}.jpg', i)
 
             # Super Resolution
             sr_img_dic = ControllerConfig.sr.inference(img_dic)
@@ -129,10 +135,11 @@ class GetInformation(APIView):
             # Text Detection Yolov5x
             yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
             print('finished text detection(yolo)')
+
             # test Text Detection
             for k, l in yolo_cropped_img_dic.items():
-                for i in l:
-                    cv2.imwrite(f'TD{k}.jpg', i)
+                for idx, i in enumerate(l):
+                    cv2.imwrite(f'TD{k}{idx}.jpg', i)
 
             # Text Detection
             # for k in img_key:

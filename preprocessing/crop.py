@@ -200,7 +200,7 @@ class Crop():
             cv2.circle(background, p3, 3, (255, 0, 0), -1)
             cv2.circle(background, p4, 3, (255, 0, 0), -1)
             
-            cropped = four_point_transform(gray, pts)
+            cropped = four_point_transform(img, pts)
             # cv2.imwrite(os.path.join(base_path, crop_path) + '/cropped-' + name, cropped)
             
             # plt.figure(figsize=(10,10))
