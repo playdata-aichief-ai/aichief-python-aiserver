@@ -17,6 +17,9 @@ Web Server와 연동할 AI Server(OCR)
 - text_detection 모델(craft_mlt_25k/pretrained 모델)
   https://drive.google.com/file/d/1LG_UxK_dwMagXZHg4fcPia6LoiAjTJqM/view?usp=sharing
 
+## text_detection yolov5(path: text_detection_yolo/models/best_yolo5x.pt)
+  https://drive.google.com/drive/folders/1YuA5CrXsoS9WYELPSsJTOSfpxk0l_Qsb?usp=sharing
+
 ## Super-resolution saved_models(path: super_resolution/saved_models)
 
 - SwinIR pretrined model  
