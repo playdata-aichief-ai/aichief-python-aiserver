@@ -124,17 +124,16 @@ class GetInformation(APIView):
             # Text Recognition : 최대 predict 이미지 개수 500개
             img_key = list(yolo_cropped_img_dic.keys())
 
-            result = [{'contract_id': contract_id,
-                       'image_path': image_path,
-                       'result': {}}]
+            result = {}
             for i in range(len(img_key)):
-                result[0]['result'][img_key[i]] = ControllerConfig.tr.predict(
+                result[img_key[i]] = ControllerConfig.tr.predict(
                     file_name + str(i), [Image.fromarray(target) for target in yolo_cropped_img_dic[img_key[i]]])[0]
 
             ProcessLog(user=user, img_path=image_path,
                        finished='recognition').save()
 
-            res = Responsed(user=user, result=result)
+            res = Responsed(user=user, contractId=contract_id,
+                            imagePath=image_path, result=result)
 
             # # test image save
             # cv2.imwrite('./result/scan.jpg', scanned_img)

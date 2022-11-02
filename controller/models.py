@@ -16,7 +16,9 @@ class Requested(models.Model):
 
 class Responsed(models.Model):
     user = models.CharField(null=False, max_length=50)
-    result = models.CharField(null=False, max_length=500)
+    contractId = models.CharField(null=False, max_length=50)
+    imagePath = models.CharField(null=False, max_length=500)
+    result = models.CharField(null=False, max_length=2000)
 
 
 class ProcessLog(models.Model):
