@@ -102,27 +102,27 @@ WSGI_APPLICATION = "ai.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-# pymysql.install_as_MySQLdb()
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',  # engine: mysql
-#         'NAME': get_secret('DB')['NAME'],  # DB Name
-#         'USER': get_secret('DB')['USER'],  # DB User
-#         'PASSWORD': get_secret('DB')['PASSWORD'],  # Password
-#         'HOST': get_secret('DB')['HOST'],  # 생성한 데이터베이스 엔드포인트
-#         'PORT': get_secret('DB')['PORT'],  # 데이터베이스 포트
-#         'OPTIONS': {
-#             'init_command': get_secret('DB')['OPTIONS']
-#         }
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+pymysql.install_as_MySQLdb()
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # engine: mysql
+        'NAME': get_secret('DB')['NAME'],  # DB Name
+        'USER': get_secret('DB')['USER'],  # DB User
+        'PASSWORD': get_secret('DB')['PASSWORD'],  # Password
+        'HOST': get_secret('DB')['HOST'],  # 생성한 데이터베이스 엔드포인트
+        'PORT': get_secret('DB')['PORT'],  # 데이터베이스 포트
+        'OPTIONS': {
+            'init_command': get_secret('DB')['OPTIONS']
+        }
+    }
+}
 
 
 # Password validation

@@ -65,12 +65,6 @@ class GetInformation(APIView):
         except:
             pass
 
-        # try:
-        #     cv2.imshow('crop_img', sliced_img)
-        #     cv2.waitKey(0)
-        #     cv2.destroyAllWindows()
-        # except:
-        #     pass
         return sliced_img
 
     def post(self, request, format=None):
@@ -83,9 +77,7 @@ class GetInformation(APIView):
 
             user = user = serializer.data.get('user')
             file_name = file_name = image_path.split('/')[-1]
-            coordinates = []
-            pred_img = []
-            logging = ProcessLog(user=user, img_path=image_path)
+
             # img url에서 s3 img file read or 전달받은 Inmemoryuploadedfile 을 이미지로 읽기
             try:
                 img = np.asarray(Image.open(
@@ -97,51 +89,39 @@ class GetInformation(APIView):
             # Image Scan
             scanned_img = scanner.scan(img)
             print('finished scan')
-
-            # test scan
-            cv2.imwrite('scan.jpg', scanned_img)
+            ProcessLog(user=user, img_path=image_path, finished='scan').save()
 
             # Image Classification
             category = ControllerConfig.cf.classify(scanned_img)
             print('finished classification', category)
+            ProcessLog(user=user, img_path=image_path,
+                       finished='classification').save()
 
             # Image Crop
             cropped_img = cropper.crop(category, scanned_img)
             print('finished crop')
-
-            # test Crop
-            cv2.imwrite('crop.jpg', cropped_img)
+            ProcessLog(user=user, img_path=image_path, finished='crop').save()
 
             # Area detection
             img_dic = box_detector.box_detect(
                 name=category, cropped_image=cropped_img)
             print('finished box detect')
-
-            # test_Area_detection
-            for k, i in img_dic.items():
-                cv2.imwrite(f'AD{k}.jpg', i)
+            ProcessLog(user=user, img_path=image_path,
+                       finished='box_detect').save()
 
             # Super Resolution
             sr_img_dic = ControllerConfig.sr.inference(img_dic)
             print('finished super resolution')
-
-            # for k, i in sr_img_dic.items():
-            #     cv2.imwrite(f'SR{k}.jpg', i)
-
-            img_key = list(img_dic.keys())
-            img_values = []
+            ProcessLog(user=user, img_path=image_path,
+                       finished='super_resolution').save()
 
             # Text Detection Yolov5x
             yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
             print('finished text detection(yolo)')
-
-            # test Text Detection
-            for k, l in yolo_cropped_img_dic.items():
-                for idx, i in enumerate(l):
-                    cv2.imwrite(f'TD{k}{idx}.jpg', i)
+            ProcessLog(user=user, img_path=image_path,
+                       finished='yolo_crop').save()
 
             # Text Recognition : 최대 predict 이미지 개수 500개
-            # img_key = list(yolo_cropped_img_dic.keys())
             img_key = list(yolo_cropped_img_dic.keys())
 
             result = [{'contract_id': contract_id,
@@ -151,9 +131,22 @@ class GetInformation(APIView):
                 result[0]['result'][img_key[i]] = ControllerConfig.tr.predict(
                     file_name + str(i), [Image.fromarray(target) for target in yolo_cropped_img_dic[img_key[i]]])[0]
 
+            ProcessLog(user=user, img_path=image_path,
+                       finished='recognition').save()
+
             res = Responsed(user=user, result=result)
 
-            # req.save()
+            # # test image save
+            # cv2.imwrite('./result/scan.jpg', scanned_img)
+            # # Crop
+            # cv2.imwrite('./result/crop.jpg', cropped_img)
+            # # Area_detection
+            # for k, i in img_dic.items():
+            #     cv2.imwrite(f'./result/AD{k}.jpg', i)
+            # # Text Detection
+            # for k, l in yolo_cropped_img_dic.items():
+            #     for idx, i in enumerate(l):
+            #         cv2.imwrite(f'./result/TD{k}{idx}.jpg', i)
 
             return Response(ResponsedSerializer(res).data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'Invalid Data..'}, status=status.HTTP_400_BAD_REQUEST)
