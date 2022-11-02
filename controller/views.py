@@ -15,7 +15,6 @@ import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 from text_detection_yolo.text_detection_yolo import Text_Detection_Yolo
 from ai.settings.settings import BASE_DIR, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3DIRECT_REGION, PROTECTED_DIR_NAME, PROTECTED_MEDIA_URL, AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME, AWS_DOWNLOAD_EXPIRE
-from utils.logging_time import logging_time
 from .apps import ControllerConfig
 from .models import Requested, Responsed
 from .serializers import RequestedSerializer, ResponsedSerializer
@@ -74,7 +73,6 @@ class GetInformation(APIView):
         #     pass
         return sliced_img
 
-    @logging_time
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)  # data 유효성 검사
         if serializer.is_valid():
@@ -117,31 +115,22 @@ class GetInformation(APIView):
             sr_img_dic = ControllerConfig.sr.inference(img_dic)
             print('finished super resolution')
 
-            img_key = list(sr_img_dic.keys())
-            img_values = []
-
             # Text Detection Yolov5x
-            yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
-            
-            # Text Detection
-            for k in img_key:
-                re_cropped_img = self.re_crop_detection(sr_img_dic[k])
-                try:
-                    re_cropped_img = Image.fromarray(re_cropped_img)
-                except:
-                    re_cropped_img = Image.fromarray(sr_img_dic[k])
-                img_values.append(re_cropped_img)
+            # yolo_cropped_img_dic = Text_Detection_Yolo.predict(img_dic)
+            # print(yolo_cropped_img_dic)
+            # print('finished yolo_cropped_img_dic')
 
             # Text Recognition : 최대 predict 이미지 개수 500개
+            # img_key = list(yolo_cropped_img_dic.keys())
+            img_key = list(sr_img_dic.keys())
 
             result = [{'contract_id': contract_id,
                        'image_path': image_path,
                        'result': {}}]
-            predict_result = ControllerConfig.tr.predict(
-                file_name, img_values)
-
             for i in range(len(img_key)):
-                result[0]['result'][img_key[i]] = predict_result[0][i]
+                result[0]['result'][img_key[i]] = ControllerConfig.tr.predict(
+                    file_name + str(i), [Image.fromarray(target) for target in sr_img_dic[img_key[i]]])[0]
+
             res = Responsed(user=user, result=result)
 
             # req.save()
@@ -244,3 +233,12 @@ class GetInformation(APIView):
         #     cv2.destroyAllWindows()
         # except:
         #     pass
+
+        # # Text Detection
+        # for k in img_key:
+        #     re_cropped_img = self.re_crop_detection(sr_img_dic[k])
+        #     try:
+        #         re_cropped_img = Image.fromarray(re_cropped_img)
+        #     except:
+        #         re_cropped_img = Image.fromarray(sr_img_dic[k])
+        #     img_values.append(re_cropped_img)

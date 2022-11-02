@@ -7,7 +7,6 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data
 import torch.nn.functional as F
 
-from utils.logging_time import logging_time
 
 from .utils import CTCLabelConverter, AttnLabelConverter
 from .dataset import RawDataset, AlignCollate
@@ -108,7 +107,6 @@ class Text_Recognition():
             imgH=self.opt.imgH, imgW=self.opt.imgW, keep_ratio_with_pad=self.opt.PAD), converter
 
     # predict
-    @logging_time
     def predict(self, img_name_origin, image):
 
         # 여기서 이미지 받음

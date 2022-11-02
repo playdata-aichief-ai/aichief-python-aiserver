@@ -44,7 +44,8 @@ DEBUG = False  # 배포위해서 False
 # AWS Elastic IP
 ALLOWED_HOSTS = [get_secret('IP'), '127.0.0.1']
 
-ALLOWED_IP_ADDRESSES = ALLOWED_HOSTS + [get_secret('SPRING_IP')]
+ALLOWED_IP_ADDRESSES = ALLOWED_HOSTS + \
+    [get_secret('SPRING_IP')] + get_secret('TEAM')
 
 # Application definition
 
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'rest_framework',
     'controller.apps.ControllerConfig',
+    # 'text_detection_yolo.apps.Text_Detection_Yolo_Config'
     # 'text_recognition.apps.TextRecognitionConfig',
 ]
 
