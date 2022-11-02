@@ -87,6 +87,10 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': []
+}
+
 WSGI_APPLICATION = "ai.wsgi.application"
 
 

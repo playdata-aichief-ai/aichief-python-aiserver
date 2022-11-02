@@ -6,12 +6,10 @@ from ai.settings.settings import BASE_DIR
 
 class Text_Detection_Yolo():
     def predict(img_dic):
-        result = {}
-        for k, img in img_dic.items():
-            result[k] = detect.run(
+        return detect.run(
                 weights=os.path.join(BASE_DIR, 'text_detection_yolo', 'models', 'best_yolo5x.pt'),  # model path or triton URL
                 source=None,  # file/dir/URL/glob/screen/0(webcam)
-                np_io=img,
+                img_dic=img_dic,
                 data=os.path.join(BASE_DIR,'data/coco128.yaml'),  # dataset.yaml path
                 imgsz=(640, 640),  # inference size (height, width)
                 conf_thres=0.25,  # confidence threshold
@@ -38,4 +36,3 @@ class Text_Detection_Yolo():
                 dnn=False,  # use OpenCV DNN for ONNX inference
                 vid_stride=1,  # video frame-rate stride
                 )
-        return result

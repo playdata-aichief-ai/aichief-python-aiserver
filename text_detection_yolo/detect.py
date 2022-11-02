@@ -53,7 +53,7 @@ from text_detection_yolo.utils.augmentations import letterbox
 def run(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
-        np_io=None,
+        img_dic=None,
         data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
         imgsz=(640, 640),  # inference size (height, width)
         conf_thres=0.25,  # confidence threshold
@@ -86,35 +86,36 @@ def run(
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
-
-    if np_io:
-
-        im0 = padding(np_io)
-        bs = 1  # batch_size
-
+    result = {}
+    for k, img in img_dic.items():
+        im0 = padding(img.copy())
         # Run inference
-        model.warmup(imgsz=(1 if pt or model.triton else bs, 1, *imgsz))  # warmup
+        model.warmup(imgsz=(1, 1, *imgsz))  # warmup
 
-        im = letterbox(im0, imgsz, stride, auto=False)[0]  # padded resize
+        im = cv2.resize(im0, dsize=(640, 640), interpolation=cv2.INTER_LINEAR)  # padded resize
         im = im.transpose((2, 0, 1)) # [::-1]  # HWC to CHW, BGR to RGB
+        im = im[np.newaxis, ...]
         im = np.ascontiguousarray(im)  # contiguous
-
+        im = torch.from_numpy(im).to(model.device)
+        im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
         # Inference
         pred = model(im, augment=augment, visualize=visualize)
-
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
 
         return_list = []
-
+        
         for det in pred:  # per image
+            det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
             imc = im0.copy()
             for *xyxy, conf, _ in reversed(det):
                 if conf >= conf_thres:
                     return_list.append(save_one_box(xyxy, imc, BGR=False, save=False))
+                    # test
+                    # cv2.imwrite(f'{k}{len(return_list)}.jpg', save_one_box(xyxy, imc, BGR=False, save=False))
+        result[k] = return_list if return_list else [img]
 
-        # crop된 
-        return return_list if return_list else np_io
-
-    else:
-        print('이미지가 없습니다.')
+    return result
