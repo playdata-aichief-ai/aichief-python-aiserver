@@ -17,7 +17,7 @@ from text_detection_yolo.text_detection_yolo import Text_Detection_Yolo
 from ai.settings.settings import BASE_DIR, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3DIRECT_REGION, PROTECTED_DIR_NAME, PROTECTED_MEDIA_URL, AWS_STORAGE_BUCKET_NAME, PROTECTED_DIR_NAME, AWS_DOWNLOAD_EXPIRE
 from .apps import ControllerConfig
 from .models import Requested, Responsed, ProcessLog
-from .serializers import RequestedSerializer, ResponsedSerializer
+from .serializers import RequestedSerializer, ResponsedSerializer, ProcessLogSerializer
 from preprocessing.box_detection import Box_Detection
 from preprocessing.crop import Crop
 from preprocessing.scan import Scan
@@ -124,13 +124,24 @@ class GetInformation(APIView):
             # Text Recognition : 최대 predict 이미지 개수 500개
             img_key = list(yolo_cropped_img_dic.keys())
 
-            result = {}
+            result_key = []
+            result_value = []
             for i in range(len(img_key)):
-                result[img_key[i]] = ControllerConfig.tr.predict(
-                    file_name + str(i), [Image.fromarray(target) for target in yolo_cropped_img_dic[img_key[i]]])[0]
-
+                for v in yolo_cropped_img_dic[img_key[i]]:
+                    result_key.append(img_key[i])
+                    result_value.append(Image.fromarray(v))
+            recogntion_result = ControllerConfig.tr.predict(
+                file_name, result_value)[0]
             ProcessLog(user=user, img_path=image_path,
                        finished='recognition').save()
+
+            result = {}
+            for i in range(len(result_key)):
+                v = result.get(result_key[i]) or []
+                v.append(recogntion_result[i])
+                result[result_key[i]] = v
+            # result[img_key[i]] = ControllerConfig.tr.predict(
+            #     file_name + str(i), [Image.fromarray(target) for target in yolo_cropped_img_dic[img_key[i]]])[0]
 
             res = Responsed(user=user, contractId=contract_id,
                             imagePath=image_path, result=result)
@@ -149,6 +160,17 @@ class GetInformation(APIView):
 
             return Response(ResponsedSerializer(res).data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'Invalid Data..'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetProcessLog(APIView):
+    permission_classes = [IPBasedPermission]
+
+    def get(self, request, format=None):
+        processes = ProcessLogSerializer(
+            ProcessLog.objects.filter(user=request.GET.get('id')).order_by('-finished_time'), many=True).data
+        if len(processes) > 0:
+            return Response(processes, status=status.HTTP_200_OK)
+        return Response({'Processes Not Found': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 ################ no use########################

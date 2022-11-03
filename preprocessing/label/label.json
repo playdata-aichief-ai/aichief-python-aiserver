@@ -15,7 +15,7 @@
     { "id": 13, "name": "IdentificationNumber", "supercategory": "" },
     { "id": 14, "name": "IdentificationSerialNumber", "supercategory": "" },
     { "id": 15, "name": "IdentificationIssueDate", "supercategory": "" },
-    { "id": 16, "name": "dentificationIssueBy", "supercategory": "" },
+    { "id": 16, "name": "IdentificationIssueBy", "supercategory": "" },
     { "id": 17, "name": "AccidentDateTime", "supercategory": "" },
     { "id": 18, "name": "AccidentLocation", "supercategory": "" },
     { "id": 19, "name": "AccidentDetails", "supercategory": "" },
