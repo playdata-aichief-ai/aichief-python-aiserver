@@ -173,6 +173,20 @@ class GetProcessLog(APIView):
         return Response({'Processes Not Found': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ClickProcessLog(APIView):
+    permission_classes = [IPBasedPermission]
+
+    def post(self, request, format=None):
+        print(request.data)
+        pl = ProcessLog.objects.filter(
+            user=request.data['user'], id=request.data['notification'])[0]
+        if pl != None:
+            pl.view_count = pl.view_count + 1
+            pl.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response({'Processes Not Found': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 ################ no use########################
         # 1번 방식: AI Hub Label 데이터 추출해서 Detection 하는 형식으로
         # 추출 -> static/images에 영역별로 분리해서 저장

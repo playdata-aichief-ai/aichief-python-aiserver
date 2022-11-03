@@ -26,3 +26,4 @@ class ProcessLog(models.Model):
     img_path = models.CharField(null=False, max_length=500)
     finished = models.CharField(null=False, max_length=500)
     finished_time = models.DateTimeField(auto_now_add=True)
+    view_count = models.IntegerField(default=0)
