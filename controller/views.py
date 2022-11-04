@@ -110,7 +110,7 @@ class GetInformation(APIView):
                        finished='box_detect').save()
 
             # Super Resolution
-            sr_img_dic = ControllerConfig.sr.inference(img_dic)
+            sr_img_dic = ControllerConfig.sr.inference(img_dic, light=True)
             print('finished super resolution')
             ProcessLog(user=user, img_path=image_path,
                        finished='super_resolution').save()

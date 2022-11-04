@@ -9,7 +9,7 @@ from text_detection_yolo.text_detection_yolo import Text_Detection_Yolo
 class ControllerConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "controller"
-    sr = Super_Resolution()
+    sr = Super_Resolution(light=True)
     td = Text_Detection()
     tr = Text_Recognition()
     cf = Classification()
