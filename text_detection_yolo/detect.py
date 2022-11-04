@@ -106,16 +106,17 @@ def run(
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
 
+
         return_list = []
         
-        for det in pred:  # per image
+
+        for det in pred: # per image
             det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
             imc = im0.copy()
             for *xyxy, conf, _ in reversed(det):
+                
                 if conf >= conf_thres:
-                    return_list.append(save_one_box(xyxy, imc, BGR=False, save=False))
-                    # test
-                    # cv2.imwrite(f'{k}{len(return_list)}.jpg', save_one_box(xyxy, imc, BGR=False, save=False))
-        result[k] = return_list if return_list else [img]
+                    return_list.append([save_one_box(xyxy, imc, BGR=False, save=False), xyxy[0]**2+xyxy[1]**2])
+        result[k] = [y[0] for y in sorted(return_list, key=lambda x: x[1])] if return_list else [img]
 
     return result
