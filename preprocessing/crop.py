@@ -5,29 +5,29 @@ from collections import defaultdict
 
 class Crop():
     def __init__(self):
-        self.size = {'abl-1' : (600, 725),
-                    'abl-2' : (610, 670),
-                    'aia' : (607, 800),
-                    'bnp' : (615, 760),
-                    'chubb' : (585, 640),
-                    'db' : (655, 877),
-                    'dgb' : (600, 830),
-                    'fubon' : (620, 760),
-                    'hana-1' : (570, 810),
-                    'hana-2' : (580, 815),
-                    'hanhwa' : (630, 840),
-                    'heungkuk' : (635, 825),
-                    'kb' : (615, 790),
-                    'kdb' : (653, 912),
-                    'kyobo' : (628, 815),
-                    'lina' : (572, 838),
-                    'metlife' : (600, 730),
-                    'miraeasset' : (635, 720),
-                    'nh' : (575, 807),
-                    'prudential' : (650, 745),
-                    'samsung' : (630, 835),
-                    'shinhan' : (610, 800),
-                    'tongyang' : (600, 840),
+        self.size = {'abl-1' : (600, 725, 50, 175, 150),
+                    'abl-2' : (610, 670, 50, 175, 150),
+                    'aia' : (607, 800, 50, 150, 250),
+                    'bnp' : (615, 760, 50, 125 ,100),
+                    'chubb' : (585, 640, 50, 150, 150),
+                    'db' : (655, 877, 10, 175, 150),
+                    'dgb' : (600, 830, 50, 150, 150),
+                    'fubon' : (620, 760, 50, 200, 100),
+                    'hana-1' : (570, 810, 50, 150, 150),
+                    'hana-2' : (580, 815, 50, 150, 150),
+                    'hanhwa' : (630, 840, 50, 150, 150),
+                    'heungkuk' : (635, 825, 50, 150, 150),
+                    'kb' : (615, 790, 50, 150, 150),
+                    'kdb' : (653, 912, 50, 150, 250),
+                    'kyobo' : (628, 815, 50, 170, 125),
+                    'lina' : (572, 838, 50, 150, 150),
+                    'metlife' : (600, 730, 50, 150, 150),
+                    'miraeasset' : (635, 720, 50, 150, 125),
+                    'nh' : (575, 807, 10, 200, 65),
+                    'prudential' : (650, 745, 75, 200, 125),
+                    'samsung' : (630, 835, 40, 140, 100),
+                    'shinhan' : (610, 800, 75, 200, 125),
+                    'tongyang' : (600, 840, 50, 150, 150),
                     }
     
     
@@ -212,48 +212,10 @@ class Crop():
             
             return cropped
         
-        if name.startswith('db'):
-            result = area_detect(img, 50, 10, 175, 150)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif name.startswith('nh'):
-            result = area_detect(img, 50, 10, 200, 65)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('prudential')) or (name.startswith('shinhan')):
-            result = area_detect(img, 50, 75, 200, 125)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('kyobo')):
-            result = area_detect(img, 50, 50, 170, 125)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('miraeasset')):
-            result = area_detect(img, 50, 50, 150, 125)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('bnp')):
-            result = area_detect(img, 50, 50, 125, 100)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('samsung')):
-            result = area_detect(img, 50, 40, 140, 100)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('fubon')):
-            result = area_detect(img, 50, 50, 200, 100)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('abl')):
-            result = area_detect(img, 50, 50, 175, 150)
-            result = cv2.resize(result, self.size[f'{name}'])
-            
-        elif (name.startswith('aia')) or (name.startswith('kdb')):
-            result = area_detect(img, 50, 50, 150, 250)
-            result = cv2.resize(result, self.size[f'{name}'])
+        result = area_detect(img, self.size[f'{name}'][2], self.size[f'{name}'][3], self.size[f'{name}'][4])
+        if (result.shape[0] < 450) or (result.shape[1] < 350):
+            raise Exception('Area Detection Failed')
         
-        else:
-            result = area_detect(img, 50, 50, 150, 150)
-            result = cv2.resize(result, self.size[f'{name}'])
+        result = cv2.resize(result, (self.size[f'{name}'][0], self.size[f'{name}'][1]))
         
         return result
