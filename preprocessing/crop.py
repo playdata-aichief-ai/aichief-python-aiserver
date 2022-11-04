@@ -212,10 +212,10 @@ class Crop():
             
             return cropped
         
-        result = area_detect(img, self.size[f'{name}'][2], self.size[f'{name}'][3], self.size[f'{name}'][4])
+        result = area_detect(img, 50, self.size[f'{name}'][2], self.size[f'{name}'][3], self.size[f'{name}'][4])
         if (result.shape[0] < 450) or (result.shape[1] < 350):
             raise Exception('Area Detection Failed')
         
-        result = cv2.resize(result, 50, (self.size[f'{name}'][0], self.size[f'{name}'][1]), interpolations=cv2.INTER_AREA)
+        result = cv2.resize(result, (self.size[f'{name}'][0], self.size[f'{name}'][1]), interpolations=cv2.INTER_AREA)
         
         return result
