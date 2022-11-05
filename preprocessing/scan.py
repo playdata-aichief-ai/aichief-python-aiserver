@@ -92,7 +92,12 @@ class Scan():
                     doc_cnts = approx
                     cv2.drawContours(background, [doc_cnts], 0, (255, 0, 0), 1, lineType=cv2.LINE_AA)
                     break
-        
-        scanned = four_point_transform(img, doc_cnts.reshape(4, 2))
+        try:
+            scanned = four_point_transform(img, doc_cnts.reshape(4, 2))
+            if (scanned.shape[1] < 600) or (scanned.shape[0] < 800):
+                raise Exception('Scanning Failed')
+            
+        except Exception as e:
+            print(e)
 
         return scanned
