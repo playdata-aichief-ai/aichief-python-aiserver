@@ -116,7 +116,7 @@ class GetInformation(APIView):
                        finished='super_resolution').save()
 
             # Text Detection Yolov5x
-            yolo_cropped_img_dic = Text_Detection_Yolo.predict(sr_img_dic)
+            yolo_cropped_img_dic = ControllerConfig.td_yolo.predict(sr_img_dic)
             print('finished text detection(yolo)')
             ProcessLog(user=user, img_path=image_path,
                        finished='yolo_crop').save()
@@ -152,7 +152,9 @@ class GetInformation(APIView):
             # cv2.imwrite('./result/crop.jpg', cropped_img)
             # # Area_detection
             # for k, i in img_dic.items():
-            #     cv2.imwrite(f'./result/AD{k}.jpg', i)
+            #     cv2.imwrite(f'./bd/bd{k}.jpg', i)
+            # for k, i in sr_img_dic.items():
+            #     cv2.imwrite(f'./result/SR{k}.jpg', i)
             # # Text Detection
             # for k, l in yolo_cropped_img_dic.items():
             #     for idx, i in enumerate(l):

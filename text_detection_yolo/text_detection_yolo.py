@@ -5,7 +5,7 @@ from ai.settings.settings import BASE_DIR
 # model save path =os.path.join(BASE_DIR, 'text_detection_yolo', 'models', 'best_yolo5x.pt')
 
 class Text_Detection_Yolo():
-    def predict(img_dic):
+    def predict(self, img_dic):
         return detect.run(
                 weights=os.path.join(BASE_DIR, 'text_detection_yolo', 'models', 'best_yolo5x.pt'),  # model path or triton URL
                 source=None,  # file/dir/URL/glob/screen/0(webcam)
