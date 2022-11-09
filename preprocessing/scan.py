@@ -11,7 +11,7 @@ class Scan():
 
     def scan(self, img):
         if (img.shape[0] > 2000) or (img.shape[1] > 1200):
-            img = cv2.resize(img, (810, 1440), interpolation=cv2.INTER_AREA)
+            img = cv2.resize(img, (1080, 1920), interpolation=cv2.INTER_AREA)
 
         background = np.zeros((img.shape[0], img.shape[1], 3), dtype = "uint8")
         
@@ -56,7 +56,7 @@ class Scan():
         mask = np.zeros(img.shape[:2],np.uint8)
         bgdModel = np.zeros((1,65),np.float64)
         fgdModel = np.zeros((1,65),np.float64)
-        rect = (20,20,img.shape[1]-20,img.shape[0]-20)
+        rect = (10,10,img.shape[1]-10,img.shape[0]-10)
         cv2.setRNGSeed(0)
         cv2.grabCut(hf,mask,rect,bgdModel,fgdModel,15,cv2.GC_INIT_WITH_RECT)
         mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
