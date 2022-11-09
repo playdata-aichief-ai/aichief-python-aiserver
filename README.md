@@ -21,10 +21,14 @@ Web Server와 연동할 AI Server(OCR)
   https://drive.google.com/drive/folders/1YuA5CrXsoS9WYELPSsJTOSfpxk0l_Qsb?usp=sharing
 
 ## Super-resolution saved_models(path: super_resolution/saved_models)
-  - SwinIR lightweight, grayscale(ours)    
-    https://drive.google.com/drive/folders/1CbGuHNdyBLYCWlZMjVOhn3FmGgjFFo63?usp=share_link    
+
+  - SwinIR GPP loss, ligtweight, grayscale(ours)    
+  https://drive.google.com/file/d/1j4K-7LI3ga-BDtTkSQDKLq24G9NbxEzV/view?usp=share_link
+  
+  - SwinIR perceptual loss, lightweight, grayscale(ours)    
+    https://drive.google.com/file/d/1Vh9D5ZZsxc89SVbHPZJi5xQ4SwNWw0FJ/view?usp=share_link 
     
-  - SwinIR pretrined model(for RGB Image)    
+  - SwinIR pretrined model(for RGB Image, pretrained model)    
     https://drive.google.com/file/d/1gV8s9MQ8HKMLOjIj0nQ0Gwa-lgQ3hmoh/view?usp=share_link
 
 ## Classification saved_models(path: classification/saved_models)
