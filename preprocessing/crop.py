@@ -32,77 +32,7 @@ class Crop():
     
     
     def crop(self, name, img):
-        def segment_by_angle_kmeans(lines, k=2, **kwargs):
-            """
-            Group lines by their angle using k-means clustering.
-            """
-
-            # Define criteria = (type, max_iter, epsilon)
-            default_criteria_type = cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER
-            criteria = kwargs.get('criteria', (default_criteria_type, 10, 1.0))
-
-            flags = kwargs.get('flags', cv2.KMEANS_RANDOM_CENTERS)
-            attempts = kwargs.get('attempts', 10)
-
-            # Get angles in [0, pi] radians
-            angles = np.array([line[0][1] for line in lines])
-
-            # Multiply the angles by two and find coordinates of that angle on the Unit Circle
-            pts = np.array([[np.cos(2*angle), np.sin(2*angle)] for angle in angles], dtype=np.float32)
-
-            # Run k-means
-            labels, centers = cv2.kmeans(pts, k, None, criteria, attempts, flags)[1:]
-
-            labels = labels.reshape(-1) # Transpose to row vector
-
-            # Segment lines based on their label of 0 or 1
-            segmented = defaultdict(list)
-            for i, line in zip(range(len(lines)), lines):
-                segmented[labels[i]].append(line)
-
-            segmented = list(segmented.values())
-            # print("Segmented lines into two groups: %d, %d" % (len(segmented[0]), len(segmented[1])))
-
-            return segmented
-
-
-        def intersection(line1, line2):
-            """
-            Find the intersection of two lines 
-            specified in Hesse normal form.
-
-            Returns closest integer pixel locations.
-            """
-
-            rho1, theta1 = line1[0]
-            rho2, theta2 = line2[0]
-            A = np.array([[np.cos(theta1), np.sin(theta1)],
-                        [np.cos(theta2), np.sin(theta2)]])
-            b = np.array([[rho1], [rho2]])
-            x0, y0 = np.linalg.solve(A, b)
-            x0, y0 = int(np.round(x0)), int(np.round(y0))
-
-            return [[x0, y0]]
-
-
-        def segmented_intersections(lines):
-            """
-            Find the intersection between groups of lines.
-            """
-
-            intersections = []
-            for i, group in enumerate(lines[:-1]):
-                for next_group in lines[i+1:]:
-                    for line1 in group:
-                        for line2 in next_group:
-                            intersections.append(intersection(line1, line2)) 
-
-            return intersections
-        
         def area_detect(img, lineWitdth=30, k=15, houghThresh1=200, houghThresh2=65):
-            img = img[15:img.shape[0]-15, 15:img.shape[1]-15]
-            background = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
-                
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             blur = cv2.GaussianBlur(gray, (5,5), 0)
             
@@ -125,90 +55,89 @@ class Crop():
             
             combined = morph | thr_v
             
-            edged = cv2.Canny(combined, 50, 300)
+            ke = np.ones((10,10), np.uint8)
+            ad = cv2.morphologyEx(thr_h, cv2.MORPH_DILATE, ke)
+            contours, hierarchy = cv2.findContours(ad, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            contours = sorted(contours, key = cv2.contourArea, reverse = True)
+
+            newImage = img.copy()
+
+            largestContour = contours[0]
+            minAreaRect = cv2.minAreaRect(largestContour)
+
+            angle = minAreaRect[-1]
+            if angle < -45:
+                angle = 90 + angle
+            if angle > 1:
+                angle = 90 - angle
+                angle = -1.0 * angle
             
-            kernel_h = np.ones((1, 5), np.uint8)
-            kernel_v = np.ones((5, 1), np.uint8)
-            thr_h = cv2.morphologyEx(edged, cv2.MORPH_OPEN, kernel_h)
-            thr_v = cv2.morphologyEx(edged, cv2.MORPH_OPEN, kernel_v)
+            (h, w) = newImage.shape[:2]
+            center = (w // 2, h // 2)
+            M = cv2.getRotationMatrix2D(center, angle, 1.0)
+            combined = cv2.warpAffine(combined, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+            newImage = cv2.warpAffine(newImage, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+            gray = cv2.cvtColor(newImage, cv2.COLOR_BGR2GRAY)
+            blur = cv2.GaussianBlur(gray, (5,5), 0)
             
-            lines1 = cv2.HoughLines(thr_h, 1, np.pi / 180, houghThresh1)
-            lines2 = cv2.HoughLines(thr_v, 1, np.pi / 180, houghThresh2)
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            cl1 = clahe.apply(blur)
+            thr = cv2.adaptiveThreshold(cl1, 255, 
+                                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                            cv2.THRESH_BINARY, 21, 7)
+            thr=~thr
             
-            lines = np.vstack((lines1, lines2))
+            line_min_width = lineWitdth
+            kernel_h = np.ones((1, line_min_width), np.uint8)
+            kernel_v = np.ones((line_min_width, 1), np.uint8)
+            k2 = np.ones((k,1), np.uint8)
             
-            for line in lines:
-                for rho,theta in line:
-                    a = np.cos(theta)
-                    b = np.sin(theta)
-                    x0 = a*rho
-                    y0 = b*rho
-                    x1 = int(x0 + 3000*(-b))
-                    y1 = int(y0 + 3000*(a))
-                    x2 = int(x0 - 3000*(-b))
-                    y2 = int(y0 - 3000*(a))
-                    cv2.line(background,(x1,y1),(x2,y2),(0,255,0),1, lineType=cv2.LINE_AA)
+            thr_h = cv2.morphologyEx(thr, cv2.MORPH_OPEN, kernel_h)
+            thr_v = cv2.morphologyEx(thr, cv2.MORPH_OPEN, kernel_v)
+
+            
+            lines = cv2.HoughLinesP(thr_h, 1, np.pi / 180., houghThresh1, minLineLength=20, maxLineGap=20)
+            
+            xmin, ymin, xmax, ymax = 0, 0, 0, 0
+            if lines is not None: # 라인 정보를 받았으면
+                for i in range(lines.shape[0]):
+                    pt1 = (lines[i][0][0], lines[i][0][1]) # 시작점 좌표 x,y
+                    pt2 = (lines[i][0][2], lines[i][0][3]) # 끝점 좌표, 가운데는 무조건 0
+                    if (pt1[0] < 10) or (pt1[0] > newImage.shape[1]-10) or (pt2[0] < 10) or (pt2[0] > newImage.shape[1]-10):
+                        continue
+                    if (pt1[1] < 10) or (pt1[1] > newImage.shape[0]-10) or (pt2[1] < 10) or (pt2[1] > newImage.shape[0]-10):
+                        continue
+
+                    if xmin == 0:
+                        xmin = pt1[0]
+                        ymin = pt1[1]
+                        xmax = pt1[0]
+                        ymax = pt1[1]
                     
-            
-            segmented = segment_by_angle_kmeans(lines, 2)
-            intersections = segmented_intersections(segmented)
-            
-            p1 = (0, 0)
-            p2 = (0, 0)
-            p3 = (0, 0)
-            p4 = (0, 0)
-            for pnt in intersections:
-                pt = (pnt[0][0], pnt[0][1])
-                
-                if pt[0] < background.shape[1]//2-100:
-                    if (p1 == (0, 0)) & (p3 == (0, 0)):
-                        p1 = pt
-                        p3 = pt
+                    if xmin > pt1[0]:
+                        xmin = pt1[0]
+                    if xmin > pt2[0]:
+                        xmin = pt2[0]
                         
-                    if pt[1] < p1[1]:
-                        p1 = pt
-                    if pt[1] == p1[1]:
-                        if pt[0] < p1[0]:
-                            p1 = pt
-                            
-                    if pt[1] > p3[1]:
-                        p3 = pt
-                    if pt[1] == p3[1]:
-                        if pt[0] < p3[0]:
-                            p3 = pt
-                if pt[0] > background.shape[1]//2+100:
-                    if (p2 == (0, 0)) & (p4 == (0, 0)):
-                        p2 = pt
-                        p4 = pt
+                    if ymin > pt1[1]:
+                        ymin = pt1[1]
+                    if ymin > pt2[1]:
+                        ymin = pt2[1]
                         
-                    if pt[1] < p2[1]:
-                        p2 = pt
-                    if pt[1] == p2[1]:
-                        if pt[0] > p2[0]:
-                            p2 = pt
-                            
-                    if pt[1] > p4[1]:
-                        p4 = pt
-                    if pt[1] == p4[1]:
-                        if pt[0] > p4[0]:
-                            p4 = pt
-            
-            pts = np.array([p1, p2, p3, p4])
-            
-            cv2.circle(background, p1, 3, (255, 0, 0), -1)
-            cv2.circle(background, p2, 3, (255, 0, 0), -1)
-            cv2.circle(background, p3, 3, (255, 0, 0), -1)
-            cv2.circle(background, p4, 3, (255, 0, 0), -1)
-            
-            cropped = four_point_transform(img, pts)
-            # cv2.imwrite(os.path.join(base_path, crop_path) + '/cropped-' + name, cropped)
-            
-            # plt.figure(figsize=(10,10))
-            # plt.imshow(background, cmap='gray')
-            # plt.imshow(cropped, cmap='gray')
-            # plt.title(f'cropped {name}')
-            # plt.show()
-            # print(name, cropped.shape)
+                    if xmax < pt1[0]:
+                        xmax = pt1[0]
+                    if xmax < pt2[0]:
+                        xmax = pt2[0]
+                        
+                    if ymax < pt1[1]:
+                        ymax = pt1[1]
+                    if ymax < pt2[1]:
+                        ymax = pt2[1]
+                    
+            pts = np.array([(xmin, ymin), (xmin, ymax), (xmax, ymin), (xmax, ymax)])
+
+            cropped = four_point_transform(newImage, pts)
             
             return cropped
         
