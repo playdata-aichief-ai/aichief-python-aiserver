@@ -6,35 +6,32 @@ import os
 from super_resolution.modules.net import SwinIR
 import cv2
 
-CFG = {
-    'IMG_SIZE': 64,
-    'BATCH_SIZE': 1,
-    'DEVICE': 'cuda' if torch.cuda.is_available() else 'cpu',
-    'SCALE': 2
-}
-
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 class Super_Resolution():
     # SR with SwinIR model https://github.com/JingyunLiang/SwinIR
 
     def __init__(self, light=True):
         # load pretrained model
-        param_key_g = 'params'
         if light:
-            model = SwinIR(upscale=CFG['SCALE'], in_chans=1, img_size=CFG['IMG_SIZE'], window_size=8,
-                            img_range=1., depths=[6, 6, 6, 6], embed_dim=60, num_heads=[6, 6, 6, 6],
-                        mlp_ratio=2, upsampler='pixelshuffledirect', resi_connection='1conv')
+            model = SwinIR(upscale=4, in_chans=1, img_size=16, window_size=4,
+                        img_range=1., depths=[6, 6, 6, 6], embed_dim=60, num_heads=[6, 6, 6, 6],
+                    mlp_ratio=2, upsampler='pixelshuffledirect', resi_connection='1conv')
             pretrained_dict = torch.load(os.path.join(
-                BASE_DIR, 'super_resolution', 'saved_models', 'SwinIR_light_gray_2x.pth'), map_location=torch.device(CFG['DEVICE']))
+                BASE_DIR, 'super_resolution', 'saved_models', 'SwinIR_s16w4_x4_gp.pth'), map_location=torch.device(device))
         else: 
-            model = SwinIR(upscale=CFG['SCALE'], in_chans=3, img_size=CFG['IMG_SIZE'], window_size=8,
+            model = SwinIR(upscale=4, in_chans=3, img_size=64, window_size=8,
                         img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, num_heads=[6, 6, 6, 6, 6, 6],
-                        mlp_ratio=2, upsampler='nearest+conv', resi_connection='1conv')
+                        mlp_ratio=2, upsampler='pixelshuffle', resi_connection='1conv')
             pretrained_dict = torch.load(os.path.join(
-                BASE_DIR, 'super_resolution', 'saved_models', 'SwinIR_2x.pth'))
-
-        model.load_state_dict(pretrained_dict[param_key_g] if param_key_g in pretrained_dict.keys(
-        ) else pretrained_dict, strict=True)
+                BASE_DIR, 'super_resolution', 'saved_models', 'SwinIR_s64w8_x4_l1.pth'))
+        param_key_g = 'params'
+        try:
+            model.load_state_dict(pretrained_dict[param_key_g] if param_key_g in pretrained_dict.keys(
+            ) else pretrained_dict, strict=True)
+        except: 
+            param_key_g = 'params_ema'
+            model.load_state_dict(pretrained_dict[param_key_g] if param_key_g in pretrained_dict.keys(
+            ) else pretrained_dict, strict=True)
         self.model = model
 
     def test(self, img_lq, window_size, sf):
@@ -63,8 +60,8 @@ class Super_Resolution():
         return output
 
     def inference(self, img_dict, light=True):
-        window_size = 8
-        SCALE = 2
+        window_size = 4 if light else 8
+        SCALE = 4
         return_dic = {}
         for key in img_dict:
             img_lq = img_dict[key].astype(np.float32) / 255.
@@ -77,12 +74,12 @@ class Super_Resolution():
                 if light:
                     img_lq = cv2.cvtColor(img_lq, cv2.COLOR_RGB2GRAY)
                     img_lq = torch.from_numpy(img_lq).float().unsqueeze(
-                        0).unsqueeze(0).to(CFG['DEVICE'])  # add .to() if u have cuda
+                        0).unsqueeze(0).to(device)  # add .to() if u have cuda
                 else:
                     img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [
                                         2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
                     img_lq = torch.from_numpy(img_lq).float().unsqueeze(
-                        0).to(CFG['DEVICE'])  # add .to() if u have cuda
+                        0).to(device)  # add .to() if u have cuda
                 output = self.test(img_lq, window_size, SCALE)
                 output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
                 if light:

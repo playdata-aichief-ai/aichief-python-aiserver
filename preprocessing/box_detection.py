@@ -33,10 +33,10 @@ class Box_Detection():
 
                 box_image = cropped_image[int(y): int(y+h), int(x): int(x+w)]
                 
-                if box_image.shape[0] < 32:
-                    y_per = 32/box_image.shape[0]
-                    # box_image = cv2.resize(box_image, dsize=(0, 0), fx=y_per, fy=y_per, interpolation=cv2.INTER_AREA)
-                    box_image = cv2.resize(box_image, dsize=(0, 0), fx=y_per, fy=y_per, interpolation=cv2.INTER_LANCZOS4)
+                # if box_image.shape[0] < 32:
+                #     y_per = 32/box_image.shape[0]
+                #     # box_image = cv2.resize(box_image, dsize=(0, 0), fx=y_per, fy=y_per, interpolation=cv2.INTER_AREA)
+                #     box_image = cv2.resize(box_image, dsize=(0, 0), fx=y_per, fy=y_per, interpolation=cv2.INTER_LANCZOS4)
 
                 self.image_dict[f'{column_name}'] = box_image
 
