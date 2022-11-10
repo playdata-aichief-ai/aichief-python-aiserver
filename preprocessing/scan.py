@@ -11,7 +11,7 @@ class Scan():
 
     def scan(self, img):
         if (img.shape[0] > 2000) or (img.shape[1] > 1200):
-            img = cv2.resize(img, (810, 1440), interpolation=cv2.INTER_AREA)
+            img = cv2.resize(img, (1080, 1920), interpolation=cv2.INTER_AREA)
 
         background = np.zeros((img.shape[0], img.shape[1], 3), dtype = "uint8")
         
@@ -56,7 +56,7 @@ class Scan():
         mask = np.zeros(img.shape[:2],np.uint8)
         bgdModel = np.zeros((1,65),np.float64)
         fgdModel = np.zeros((1,65),np.float64)
-        rect = (20,20,img.shape[1]-20,img.shape[0]-20)
+        rect = (10,10,img.shape[1]-10,img.shape[0]-10)
         cv2.setRNGSeed(0)
         cv2.grabCut(hf,mask,rect,bgdModel,fgdModel,15,cv2.GC_INIT_WITH_RECT)
         mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
@@ -98,6 +98,48 @@ class Scan():
                 raise Exception('Scanning Failed')
             
         except Exception as e:
-            print(e)
+            rect = (20,20,img.shape[1]-20,img.shape[0]-20)
+            cv2.setRNGSeed(0)
+            cv2.grabCut(hf,mask,rect,bgdModel,fgdModel,15,cv2.GC_INIT_WITH_RECT)
+            mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
+            gc = img*mask2[:,:,np.newaxis]
+            
+            k = np.ones((3, 15), np.uint8)
+            mor = cv2.morphologyEx(gc, cv2.MORPH_CLOSE, k, iterations=3)
+            
+            blur = cv2.GaussianBlur(mor, (5,5), 0)
+            
+            edged = cv2.Canny(blur, 30, 150)
+            
+            contours, _ = cv2.findContours(edged, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+            for cnt in contours:
+                if cv2.arcLength(cnt, True) < 2000:
+                    continue
+                hull = cv2.convexHull(cnt)
+                epsilon = 0.05 * cv2.arcLength(hull, True)
+                approx = cv2.approxPolyDP(hull, epsilon, True)
+
+                if cv2.arcLength(approx, True) < 2000:
+                    continue
+
+                if len(approx) == 4:
+                    outlier = False
+                    doc_cnts = None
+                    for i in range(0,len(approx)):
+                        if (approx[i][0][0] > background.shape[1]-20).any() or (approx[i][0][0] < 20).any() or (approx[i][0][1] < 10).any() or (approx[i][0][1] > background.shape[0]-10).any():
+                            outlier = True
+                    if outlier == False:
+                        doc_cnts = approx
+                        cv2.drawContours(background, [doc_cnts], 0, (255, 0, 0), 1, lineType=cv2.LINE_AA)
+                        break
+            try:
+                scanned = four_point_transform(img, doc_cnts.reshape(4, 2))
+                if (scanned.shape[1] < 600) or (scanned.shape[0] < 800):
+                    raise Exception('Scanning Failed')
+                
+            except Exception as e:
+                print(e)
 
         return scanned

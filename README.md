@@ -30,7 +30,7 @@ https://drive.google.com/drive/folders/1YuA5CrXsoS9WYELPSsJTOSfpxk0l_Qsb?usp=sha
 
 ## Classification saved_models(path: classification/saved_models)
 
-- CNN Document Image Classification (VGG16 backbone + classifier head) - acc: 0.97 loss: 0.02
+- CNN Document Image Classification (VGG16 backbone + classifier head) - acc: 0.97 loss: 0.14
   https://drive.google.com/file/d/1oD6L3yco63L8uksK2pL8DXGrrRUb8pyt/view
 
 ## 실행
