@@ -186,18 +186,18 @@ class GetInformation(APIView):
                             imagePath=image_path, result=result)
 
             # # test image save
-            # cv2.imwrite('./result/scan.jpg', scanned_img)
-            # # Crop
-            # cv2.imwrite('./result/crop.jpg', cropped_img)
-            # # Area_detection
-            # for k, i in img_dic.items():
-            #     cv2.imwrite(f'./bd/bd{k}.jpg', i)
-            # for k, i in sr_img_dic.items():
-            #     cv2.imwrite(f'./result/SR{k}.jpg', i)
-            # # Text Detection
-            # for k, l in yolo_cropped_img_dic.items():
-            #     for idx, i in enumerate(l):
-            #         cv2.imwrite(f'./result/TD{k}{idx}.jpg', i)
+            cv2.imwrite('./result/scan.jpg', scanned_img)
+            # Crop
+            cv2.imwrite('./result/crop.jpg', cropped_img)
+            # Area_detection
+            for k, i in img_dic.items():
+                cv2.imwrite(f'./bd/bd{k}.jpg', i)
+            for k, i in sr_img_dic.items():
+                cv2.imwrite(f'./result/SR{k}.jpg', i)
+            # Text Detection
+            for k, l in yolo_cropped_img_dic.items():
+                for idx, i in enumerate(l):
+                    cv2.imwrite(f'./result/TD{k}{idx}.jpg', i)
 
             return Response(ResponsedSerializer(res).data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'Invalid Data..'}, status=status.HTTP_400_BAD_REQUEST)
