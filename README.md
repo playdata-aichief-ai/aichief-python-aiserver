@@ -21,7 +21,7 @@ https://drive.google.com/drive/folders/1YuA5CrXsoS9WYELPSsJTOSfpxk0l_Qsb?usp=sha
 ## Super-resolution saved_models(path: super_resolution/saved_models)
 
 - SwinIR GPP loss, ligtweight, grayscale(ours)   
-  저해상도(세로 길이 16~32) 이미지 text recognition accuracy 00.0% (원본 이미지 성능 79.37%)    
+  저해상도(세로 길이 16~32) 이미지 text recognition accuracy 86.19% (원본 이미지 성능 79.37%)    
   https://drive.google.com/file/d/1mZfp_FFZzBD_SitDFw05O0BtFo8s0sPq/view?usp=share_link
 
 - SwinIR pretrined model(for RGB Image, pretrained model)    
